@@ -2,15 +2,10 @@ import urllib, urllib2
 import getpass
 from xml.etree import ElementTree as ET
 
-settings = {}
-settings['userid'] = ''
-settings['projectid'] = 0
-settings['number'] = 0
-
 class Connection(object):
-    def __init__(self, user = settings['userid']):
+    def __init__(self, userid):
         self.pword = getpass.getpass()
-        self.user = user
+        self.user = userid
 
     def getIssue(self, issue_number, projectid):
         data = """
@@ -34,7 +29,6 @@ class Connection(object):
                         """ % (self.user, self.pword, projectid, issue_number)
 
         data8 = data.encode('utf-8')
-        print data8
         headers = {
            "SOAPAction" : "MRWebServices#MRWebServices__getIssueDetails",
            "Content-Type" : 'text/xml; charset=utf-8',
@@ -53,6 +47,8 @@ class Connection(object):
             for item in top.getchildren():
                 if item.text: 
                     issue[item.tag] = item.text
+            issue['raw'] = top
             return issue
         except urllib2.HTTPError as e:
             return e.fp.readlines()
+
