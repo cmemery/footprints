@@ -4,7 +4,7 @@ Used to connect to BMC (Numara) Footprints SOAP API.
 Usage:
     import footprints
     con = footprints.Connection('username', 'host.example.com', password='mypassword')
-    issue = con.getIssue(1, 536354) # where 1 is the item definition id, and 536354 is the item id
+    issue = con.getIssue('8001', '536354') # where 8001 is the item definition id, and 536354 is the itemnumber
     print issue
 """
 import getpass
@@ -28,22 +28,29 @@ class Connection(object):
         self.client = Client(self.url,
                              transport=Transport(http_auth=HTTPBasicAuth(self.user, self.pword)))
 
-    def getIssue(self, definition_id, item_num):
+    def getIssue(self, definition_id, item_num, terse=True):
         """
         Retrieve information about an issue from Footprints via a SOAP API call.
-
+        Filters fields to basic info by default. To get all fields in response, pass 
+        terse=False.
         """
-        if 'SR-' in item_num:
+        if 'SR-' in item_num: #Not sure if SR prefix is custom to our env, but it appears to be required
             pass
         else:
             item_num = 'SR-' + item_num
         def_id = definition_id
+        #First call gets the issue id by  the issue number, which don't match for some reason
         id_res = self.client.service.getItemId({'_itemDefinitionId':def_id,'_itemNumber':item_num})
         res = self.client.service.getItemDetails({'_itemDefinitionId':def_id,'_itemId':id_res})
-        return self.extract_info(res, id_res)
+        if terse:
+            return self.extract_info(res, id_res)
+        else:
+            return (res, id_res)
 
     def extract_info(self, results, item_id):
         """
+        Limits fields included in output of FP call
+        Use terse = False in getIssue to avoid this filter
         """
         pretty_result = {}
         fields = ['Title', 'Updated On', 'Created On', 'Status','Email Address']
