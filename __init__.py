@@ -7,8 +7,7 @@ Usage:
     issue = con.getIssue(1, 536354) # where 1 is the item definition id, and 536354 is the item id
     print issue
 """
-import urllib, urllib2, getpass, requests
-from xml.etree import ElementTree as ET
+import getpass
 from zeep import Client
 from zeep.transports import Transport
 from requests.auth import HTTPBasicAuth
@@ -16,8 +15,7 @@ from requests.auth import HTTPBasicAuth
 class Connection(object):
     """
     Create a connection to a Footprints server's SOAP API.
-
-    Expects a userid and fqdn to setup the connection.
+    Expects a webhost, username, password, and fqdn to setup the connection.
 
     """
     def __init__(self, userid, webhost, password = None):
@@ -30,25 +28,26 @@ class Connection(object):
         self.client = Client(self.url,
                              transport=Transport(http_auth=HTTPBasicAuth(self.user, self.pword)))
 
-    def getIssue(self, definition_id, issue_id):
+    def getIssue(self, definition_id, item_num):
         """
         Retrieve information about an issue from Footprints via a SOAP API call.
 
         """
-        fields = ['Title', 'Updated On', 'Created On', 'Status','Email Address']
+        if 'SR-' in item_num:
+            pass
+        else:
+            item_num = 'SR-' + item_num
         def_id = definition_id
-        item_id = issue_id
-        res = self.client.service.getItemDetails({'_itemDefinitionId':def_id,'_itemId':item_id,'_fieldsToRetrieve':fields })
-        #return res
-        return self.extract_info(res)
+        id_res = self.client.service.getItemId({'_itemDefinitionId':def_id,'_itemNumber':item_num})
+        res = self.client.service.getItemDetails({'_itemDefinitionId':def_id,'_itemId':id_res})
+        return self.extract_info(res, id_res)
 
-    def extract_info(self, results):
+    def extract_info(self, results, item_id):
         """
         """
         pretty_result = {}
         fields = ['Title', 'Updated On', 'Created On', 'Status','Email Address']
         for item in results['_itemFields']['itemFields']:
-            print item
             try:
                 label = item['fieldName']
                 value = item['fieldValue']['value']
@@ -61,4 +60,5 @@ class Connection(object):
                     pass
             except TypeError:
                 pass
+        pretty_result['item_id'] = item_id
         return pretty_result
