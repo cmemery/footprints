@@ -11,6 +11,7 @@ import getpass
 from zeep import Client
 from zeep.transports import Transport
 from requests.auth import HTTPBasicAuth
+import datetime
 
 class Connection(object):
     """
@@ -60,7 +61,12 @@ class Connection(object):
                 value = item['fieldValue']['value']
                 if label in fields:
                     if (type(value) is list and len(value) == 1):
-                        pretty_result[label] = value[0]
+                        value = value[0]
+                    if label in ['Created On','Updated On']:
+                        dateobject = datetime.datetime.strptime(value,'%Y-%m-%dT%H:%M:%S')
+                        adjusteddate = dateobject+datetime.timedelta(hours=-4)
+                        datestring = adjusteddate.strftime('%m/%d/%Y %I:%M%p')
+                        pretty_result[label] = datestring
                     else:
                         pretty_result[label] = value
                 else:
