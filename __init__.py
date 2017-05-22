@@ -28,11 +28,11 @@ class Connection(object):
         self.url = "https://{}/footprints/servicedesk/externalapisoap/ExternalApiServicePort?wsdl".format(webhost)
         self.client = Client(self.url, transport=Transport(session=session))
 
-    def getIssue(self, definition_id, item_num, terse=True):
+    def getIssue(self, definition_id, item_num, ticket=False):
         """
         Retrieve information about an issue from Footprints via a SOAP API call.
-        Filters fields to basic info by default. To get all fields in response, pass
-        terse=False.
+        Use ticket=True to get a more detailed dataset. Leaving default behavior alone
+        for now for backward compatibility.
         """
         if 'SR-' in item_num: #Not sure if SR prefix is custom to our env, but it appears to be required
             pass
@@ -41,19 +41,20 @@ class Connection(object):
         def_id = definition_id
         #First call gets the issue id by  the issue number, which don't match for some reason
         id_res = self.client.service.getItemId({'_itemDefinitionId':def_id,'_itemNumber':item_num})
-        res = self.client.service.getItemDetails({'_itemDefinitionId':def_id,'_itemId':id_res})
-        if terse:
-            return self.extract_info(res, id_res)
+        if ticket == True:
+            res = self.client.service.getTicketDetails({'_itemDefinitionId':def_id,'_itemId':id_res})
+            return res
         else:
-            return (res, id_res)
+            res = self.client.service.getItemDetails({'_itemDefinitionId':def_id,'_itemId':id_res})
+            return self.extract_info(res, id_res)
 
     def extract_info(self, results, item_id):
         """
         Limits fields included in output of FP call
-        Use terse = False in getIssue to avoid this filter
         """
         pretty_result = {}
-        fields = ['Title', 'Updated On', 'Created On', 'Status','Email Address']
+        fields = ['Title', 'Updated On', 'Created On', 'Status','Email Address',
+        'Full Name', 'Internal', 'Email Address', 'Service', 'Details', 'Description']
         for item in results['_itemFields']['itemFields']:
             try:
                 label = item['fieldName']
