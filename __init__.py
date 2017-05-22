@@ -20,7 +20,9 @@ class Connection(object):
     Expects a webhost, username, password, and fqdn to setup the connection.
 
     """
-    def __init__(self, userid, webhost, password):
+    def __init__(self, userid, webhost, password=None):
+        if not password:
+            password = getpass.getpass()
         session = Session()
         session.auth = HTTPBasicAuth(userid, password)
         self.url = "https://{}/footprints/servicedesk/externalapisoap/ExternalApiServicePort?wsdl".format(webhost)

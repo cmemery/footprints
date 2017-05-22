@@ -31,8 +31,8 @@ From python shell or your script, import footprints to use
 
 ```
 >>>import footprints
->>>con = footprints.Connection('username','host_fqdn')
-#you will be prompted for password if you didn't pass it
+>>>con = footprints.Connection('username','host_fqdn', password='12345')
+# You will be prompted for password if omitted
 >>>issue = con.getIssue('82001','154000')
 >>>issue
 {'Status': 'Resolved', 'Updated On': '2016-08-11T16:28:47', 'Email
