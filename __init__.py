@@ -11,6 +11,7 @@ import getpass
 from zeep import Client
 from zeep.transports import Transport
 from requests.auth import HTTPBasicAuth
+from requests import Session
 import datetime
 
 class Connection(object):
@@ -19,20 +20,16 @@ class Connection(object):
     Expects a webhost, username, password, and fqdn to setup the connection.
 
     """
-    def __init__(self, userid, webhost, password = None):
-        if not password:
-            self.pword = getpass.getpass()
-        else:
-            self.pword = password
-        self.user = userid
+    def __init__(self, userid, webhost, password):
+        session = Session()
+        session.auth = HTTPBasicAuth(userid, password)
         self.url = "https://{}/footprints/servicedesk/externalapisoap/ExternalApiServicePort?wsdl".format(webhost)
-        self.client = Client(self.url,
-                             transport=Transport(http_auth=HTTPBasicAuth(self.user, self.pword)))
+        self.client = Client(self.url, transport=Transport(session=session))
 
     def getIssue(self, definition_id, item_num, terse=True):
         """
         Retrieve information about an issue from Footprints via a SOAP API call.
-        Filters fields to basic info by default. To get all fields in response, pass 
+        Filters fields to basic info by default. To get all fields in response, pass
         terse=False.
         """
         if 'SR-' in item_num: #Not sure if SR prefix is custom to our env, but it appears to be required
