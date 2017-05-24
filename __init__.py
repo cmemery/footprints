@@ -43,6 +43,7 @@ class Connection(object):
         id_res = self.client.service.getItemId({'_itemDefinitionId':def_id,'_itemNumber':item_num})
         if ticket == True:
             res = self.client.service.getTicketDetails({'_itemDefinitionId':def_id,'_itemId':id_res})
+            res['item_id'] = id_res
             return res
         else:
             res = self.client.service.getItemDetails({'_itemDefinitionId':def_id,'_itemId':id_res})
