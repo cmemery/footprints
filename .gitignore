@@ -25,6 +25,11 @@ var/
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
+pip-selfcheck.json
+
+# virtualenv dirs
+include/
+share/
 
 # Unit test / coverage reports
 htmlcov/
